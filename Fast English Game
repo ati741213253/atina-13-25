@@ -1,0 +1,80 @@
+index.html
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>English Hero - 10 Second Challenge</title>
+    <style>
+        :root { --light-blue: #a2d2ff; --light-green: #bafca2; --dark-text: #2c3e50; }
+        body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; background: linear-gradient(135deg, var(--light-blue), var(--light-green)); height: 100vh; display: flex; justify-content: center; align-items: center; color: var(--dark-text); overflow: hidden; }
+        .container { background: #ffffff; padding: 30px; border-radius: 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); width: 90%; max-width: 500px; text-align: center; animation: float 4s ease-in-out infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .screen { transition: opacity 0.3s ease; }
+        .hidden { display: none; opacity: 0; }
+        h1 { color: #4a90e2; font-size: 2.2rem; display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 5px; }
+        button { padding: 18px; border: none; border-radius: 20px; font-weight: bold; font-size: 1.1rem; cursor: pointer; width: 100%; margin-bottom: 12px; transition: 0.2s; }
+        .btn-mudah { background-color: #add8e6; }
+        .btn-tengah { background-color: #e3f2fd; }
+        .btn-sulit { background-color: #ffd6e0; }
+        .round-stat-box { background: #f9f9f9; padding: 20px; border-radius: 20px; margin: 20px 0; border: 2px dashed #a2d2ff; }
+        #vocab-word { font-size: 2.8rem; font-weight: 800; margin: 20px 0; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        input { width: 100%; padding: 15px; font-size: 1.2rem; border: 2px solid #ddd; border-radius: 12px; text-align: center; margin-bottom: 15px; outline: none; }
+        .timer-container { width: 100%; height: 12px; background: #eee; border-radius: 10px; overflow: hidden; margin-bottom: 15px; }
+        #timer-bar { height: 100%; width: 100%; background: #4a90e2; transition: width 0.1s linear; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div id="screen-menu" class="screen">
+        <h1><span style="background:#4a90e2; color:white; padding:5px 10px; border-radius:10px;">abc</span> English Hero</h1>
+        <p>Pilih Tingkat Kesulitan:</p>
+        <button class="btn-mudah" onclick="startGame('mudah')">MUDAH (Beginner)</button>
+        <button class="btn-tengah" onclick="startGame('tengah')">TENGAH (Intermediate)</button>
+        <button class="btn-sulit" onclick="startGame('sulit')">SULIT (Advanced)</button>
+    </div>
+    <div id="screen-game" class="screen hidden">
+        <div style="font-weight: bold; margin-bottom: 10px; color: #7f8c8d;"><span id="label-ronde-game">Ronde 1</span> | <span id="label-soal">Soal 1/20</span></div>
+        <div class="timer-container"><div id="timer-bar"></div></div>
+        <div id="vocab-word">...</div>
+        <div id="feedback" style="height:25px; font-weight:bold;"></div>
+        <input type="text" id="answer-input" placeholder="Ketik jawabannya...">
+        <button class="btn-mudah" id="btn-submit" onclick="checkAnswer()">KIRIM JAWABAN</button>
+    </div>
+    <div id="screen-intermediate" class="screen hidden">
+        <h1 id="title-ronde-selesai">Ronde 1 Selesai!</h1>
+        <div class="round-stat-box">
+            <div style="color: #27ae60; font-size: 1.3rem; font-weight: bold;">Benar: <span id="inter-benar">0</span></div>
+            <div style="color: #e74c3c; font-size: 1.3rem; font-weight: bold;">Salah: <span id="inter-salah">0</span></div>
+        </div>
+        <button class="btn-mudah" onclick="startRound2()">LANJUT KE RONDE 2</button>
+    </div>
+    <div id="screen-result" class="screen hidden">
+        <h1>📊 Hasil Akhir (Total)</h1>
+        <div class="round-stat-box">
+            <div style="color: #27ae60; font-size: 1.3rem; font-weight: bold;">Total Benar: <span id="final-benar">0</span></div>
+            <div style="color: #e74c3c; font-size: 1.3rem; font-weight: bold;">Total Salah: <span id="final-salah">0</span></div>
+        </div>
+        <button class="btn-mudah" onclick="location.reload()">KEMBALI KE AWAL</button>
+    </div>
+</div>
+<script>
+    const database = {
+        mudah: { r1: [{en:"Dog", id:"anjing"}, {en:"Apple", id:"apel"}, {en:"Blue", id:"biru"}, {en:"Big", id:"besar"}, {en:"Cold", id:"dingin"}, {en:"Fire", id:"api"}, {en:"Go", id:"pergi"}, {en:"Hat", id:"topi"}, {en:"Ice", id:"es"}, {en:"Jump", id:"lompat"}, {en:"Key", id:"kunci"}, {en:"Love", id:"cinta"}, {en:"Milk", id:"susu"}, {en:"No", id:"tidak"}, {en:"Open", id:"buka"}, {en:"Pen", id:"pulpen"}, {en:"Queen", id:"ratu"}, {en:"Red", id:"merah"}, {en:"Sun", id:"matahari"}, {en:"Table", id:"meja"}], r2: [{en:"Bird", id:"burung"}, {en:"Car", id:"mobil"}, {en:"Door", id:"pintu"}, {en:"Egg", id:"telur"}, {en:"Fish", id:"ikan"}, {en:"Green", id:"hijau"}, {en:"Hand", id:"tangan"}, {en:"Ink", id:"tinta"}, {en:"Juice", id:"jus"}, {en:"King", id:"raja"}, {en:"Lamp", id:"lampu"}, {en:"Moon", id:"bulan"}, {en:"Night", id:"malam"}, {en:"On", id:"nyala"}, {en:"Pig", id:"babi"}, {en:"Rain", id:"hujan"}, {en:"Star", id:"bintang"}, {en:"Tree", id:"pohon"}, {en:"Up", id:"atas"}, {en:"Water", id:"air"}] },
+        tengah: { r1: [{en:"Always", id:"selalu"}, {en:"Believe", id:"percaya"}, {en:"Cloudy", id:"berawan"}, {en:"Danger", id:"bahaya"}, {en:"Enough", id:"cukup"}, {en:"Flower", id:"bunga"}, {en:"Garden", id:"kebun"}, {en:"Healthy", id:"sehat"}, {en:"Island", id:"pulau"}, {en:"Jungle", id:"hutan"}, {en:"Kitchen", id:"dapur"}, {en:"Laugh", id:"tertawa"}, {en:"Market", id:"pasar"}, {en:"Narrow", id:"sempit"}, {en:"Office", id:"kantor"}, {en:"People", id:"orang"}, {en:"Quiet", id:"tenang"}, {en:"Ready", id:"siap"}, {en:"Season", id:"musim"}, {en:"Travel", id:"perjalanan"}], r2: [{en:"Advice", id:"nasihat"}, {en:"Bridge", id:"jembatan"}, {en:"Custom", id:"adat"}, {en:"Dinner", id:"makan malam"}, {en:"Expert", id:"ahli"}, {en:"Forest", id:"hutan"}, {en:"Ground", id:"tanah"}, {en:"Hungry", id:"lapar"}, {en:"Income", id:"pendapatan"}, {en:"Journey", id:"perjalanan"}, {en:"Knight", id:"ksatria"}, {en:"Lesson", id:"pelajaran"}, {en:"Member", id:"anggota"}, {en:"Nature", id:"alam"}, {en:"Object", id:"benda"}, {en:"Public", id:"umum"}, {en:"Quick", id:"cepat"}, {en:"Recent", id:"baru-baru ini"}, {en:"Silver", id:"perak"}, {en:"Village", id:"desa"}] },
+        sulit: { r1: [{en:"Abundant", id:"melimpah"}, {en:"Capacity", id:"kapasitas"}, {en:"Deception", id:"penipuan"}, {en:"Eloquent", id:"fasih"}, {en:"Frequent", id:"sering"}, {en:"Generate", id:"menghasilkan"}, {en:"Hesitate", id:"ragu"}, {en:"Identify", id:"mengenali"}, {en:"Justice", id:"keadilan"}, {en:"Knowledge", id:"pengetahuan"}, {en:"Legitimate", id:"sah"}, {en:"Maintain", id:"menjaga"}, {en:"Navigate", id:"mengarahkan"}, {en:"Obstacle", id:"hambatan"}, {en:"Persuade", id:"membujuk"}, {en:"Quality", id:"kualitas"}, {en:"Reluctant", id:"segan"}, {en:"Strategy", id:"strategi"}, {en:"Tangible", id:"nyata"}, {en:"Ultimate", id:"terakhir"}], r2: [{en:"Analyze", id:"menganalisis"}, {en:"Briefly", id:"singkatnya"}, {en:"Contrast", id:"kontras"}, {en:"Disturb", id:"mengganggu"}, {en:"Evidence", id:"bukti"}, {en:"Genuine", id:"asli"}, {en:"Hypothesis", id:"hipotesis"}, {en:"Involve", id:"melibatkan"}, {en:"Journal", id:"jurnal"}, {en:"Keyword", id:"kata kunci"}, {en:"Logic", id:"logika"}, {en:"Modified", id:"dimodifikasi"}, {en:"Neglect", id:"mengabaikan"}, {en:"Observe", id:"mengamati"}, {en:"Paradox", id:"paradoks"}, {en:"Quantity", id:"jumlah"}, {en:"Resource", id:"sumber daya"}, {en:"Subtle", id:"halus"}, {en:"Tendency", id:"kecenderungan"}, {en:"Utilize", id:"memanfaatkan"}] }
+    };
+    let currentMode, currentRound, currentIndex, scoreTotal, scoreRound, timer, timeLeft, currentPool;
+    const TOTAL_TIME = 10;
+    function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
+    function startGame(mode) { currentMode = mode; currentRound = 1; currentIndex = 0; scoreTotal = { benar: 0, salah: 0 }; scoreRound = { benar: 0, salah: 0 }; currentPool = [...database[mode].r1].sort(() => Math.random() - 0.5); showScreen('screen-game'); document.getElementById('label-ronde-game').innerText = "Ronde 1"; nextQuestion(); }
+    function startRound2() { currentRound = 2; currentIndex = 0; scoreRound = { benar: 0, salah: 0 }; currentPool = [...database[currentMode].r2].sort(() => Math.random() - 0.5); showScreen('screen-game'); document.getElementById('label-ronde-game').innerText = "Ronde 2"; nextQuestion(); }
+    function nextQuestion() { if (currentIndex >= 20) { showIntermediateStats(); return; } document.getElementById('btn-submit').disabled = false; document.getElementById('label-soal').innerText = `Soal ${currentIndex + 1}/20`; document.getElementById('vocab-word').innerText = currentPool[currentIndex].en; document.getElementById('answer-input').value = ""; document.getElementById('answer-input').focus(); document.getElementById('feedback').innerText = ""; startTimer(); }
+    function startTimer() { clearInterval(timer); timeLeft = TOTAL_TIME; timer = setInterval(() => { timeLeft -= 0.1; document.getElementById('timer-bar').style.width = (timeLeft / TOTAL_TIME) * 100 + "%"; if (timeLeft <= 0) { clearInterval(timer); checkAnswer(true); } }, 100); }
+    function checkAnswer(timeout = false) { clearInterval(timer); document.getElementById('btn-submit').disabled = true; const input = document.getElementById('answer-input').value.trim().toLowerCase(); const correct = currentPool[currentIndex].id.toLowerCase(); const feedback = document.getElementById('feedback'); if (!timeout && input === correct) { feedback.innerText = "BENAR! ✨"; feedback.style.color = "green"; scoreRound.benar++; scoreTotal.benar++; } else { feedback.innerText = timeout ? "WAKTU HABIS!" : "SALAH! (" + correct + ")"; feedback.style.color = "red"; scoreRound.salah++; scoreTotal.salah++; } currentIndex++; setTimeout(nextQuestion, 1200); }
+    function showIntermediateStats() { if (currentRound === 1) { showScreen('screen-intermediate'); document.getElementById('inter-benar').innerText = scoreRound.benar; document.getElementById('inter-salah').innerText = scoreRound.salah; } else { showResult(); } }
+    function showResult() { showScreen('screen-result'); document.getElementById('final-benar').innerText = scoreTotal.benar; document.getElementById('final-salah').innerText = scoreTotal.salah; }
+    document.getElementById('answer-input').addEventListener('keypress', (e) => { if (e.key === 'Enter' && !document.getElementById('btn-submit').disabled) checkAnswer(); });
+</script>
+</body>
+</html>
